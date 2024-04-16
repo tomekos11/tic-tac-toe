@@ -1,59 +1,34 @@
 <template>
-  <start-new-game-modal v-if="isGameFinished"/>
-
   <div class="w-100 h-100">
     <div
       class="row m-3 position-relative"
       style="border-left:1px solid black; border-top:1px solid black;"
     >
-      <div
+      <template
+        v-for="(field, index) in board"
+        :key="index"
+      >
+        <field
+          :field-owner="board[index]"
+          @pick-field="pickField(index)"
+        />
+      </template>
+      <!-- <div
         v-for="(field, index) in board"
         :key="index"
         :class="'field col-4 text-center p-2 p-md-5 ' + (board[index] === 1 ? 'bg-success-gradient' : (board[index] === 2 ? 'bg-primary-gradient' : ''))"
         style="cursor: pointer; border-right:1px solid black; border-bottom: 1px solid black; font-size:64px"
         @click="pickField(index)"
       >
-        <i
-          v-if="board[index] === 1" 
-          class="bi bi-circle"
-        />
-        <i
-          v-else-if="board[index] === 2" 
-          class="bi bi-x"
-        />
-        <i v-else class="bi bi-x" style="color: transparent"> </i>
-      </div>
+        <field-icon :field-owner="board[index]"/>
+      </div> -->
 
-      <div
+      <start-new-game-modal
         v-if="isGameFinished"
-        class="w-100 h-100 position-absolute d-flex justify-content-center align-items-center"
-        style="background: hsla(0, 0%, 0%, 0.65);"
-      >
-        <div
-          class="p-3 text-white d-flex flex-column justify-content-between"
-          style="border-radius: 10px; background: black;"
-        >
-          <div class="row">
-            <div class="col text-center py-2 display-6">
-              <span v-if="result === 1">
-                Wygrałeś, brawo
-              </span>
-              <span v-else-if="result === 0">
-                Remis, następnym razem się uda
-              </span>
-              <span v-else>
-                Przegrałeś, poćwicz...
-              </span>
-            </div>
-           </div> 
-          <div class="text-center">
-            Chcesz zagrać jeszcze raz?<br>
-            <button class="btn btn-md btn-dark" @click="startGame()">
-              Zagraj ponownie
-            </button>
-          </div>
-        </div>
-      </div>
+        :result="result"
+        @start-game="startGame()"
+      />
+        
       <span class="position-absolute top-0 end-0 m-1 border border-black border-2 bg-dark text-white" style="width:fit-content; border-radius: 10px;">
         <template v-if="canMakeMove">
           Gracz
@@ -63,14 +38,13 @@
         </template>
       </span>
     </div>
-    
   </div>
-  
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import StartNewGameModal from './components/StartNewGameModal.vue'
+import Field from './components/Field.vue';
 import axios from 'axios';
 
 const board = ref([
@@ -167,20 +141,3 @@ const botMakesMove = (delay: number) => {
   }, delay);
 }
 </script>
-
-<style scoped>
-.field:hover{
-  box-shadow: 0 0 31px 4px #42445A inset;
-}
-
-.bg-success-gradient {
-  background: linear-gradient(225deg, black 0%, green 50%, black 100%);
-  color:white;
-}
-
-.bg-primary-gradient {
-  background: linear-gradient(135deg, black 0%, red 50%, black 100%);
-  color:white;
-}
-
-</style>
