@@ -1,5 +1,6 @@
 <template>
   <div class="w-100 h-100">
+    <navbar :stats="stats" />
     <div
       class="row m-3 position-relative"
       style="border-left:1px solid black; border-top:1px solid black;"
@@ -13,15 +14,6 @@
           @pick-field="pickField(index)"
         />
       </template>
-      <!-- <div
-        v-for="(field, index) in board"
-        :key="index"
-        :class="'field col-4 text-center p-2 p-md-5 ' + (board[index] === 1 ? 'bg-success-gradient' : (board[index] === 2 ? 'bg-primary-gradient' : ''))"
-        style="cursor: pointer; border-right:1px solid black; border-bottom: 1px solid black; font-size:64px"
-        @click="pickField(index)"
-      >
-        <field-icon :field-owner="board[index]"/>
-      </div> -->
 
       <start-new-game-modal
         v-if="isGameFinished"
@@ -42,9 +34,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import StartNewGameModal from './components/StartNewGameModal.vue'
 import Field from './components/Field.vue';
+import Navbar from './components/Navbar.vue';
 import axios from 'axios';
 
 const board = ref([
@@ -58,6 +51,12 @@ const isGameFinished = ref(false);
 const result = ref(-1);
 const movesCounter = ref(0);
 const firstMove = ref(1);
+
+const stats = ref({
+  winsAmount: -1,
+  lossAmount: -1,
+  drawsAmount: -1
+});
 
 const pickField = (index: number) => {
   if (!canMakeMove.value) return;
@@ -104,6 +103,16 @@ const endGame = () => {
     'board': board.value,
     'firstMove': firstMove.value
   })
+    .then(res => {
+      console.info('wyslano wynik do bazy');
+      console.log(res.data);
+      stats.value = {
+        winsAmount: res.data.stats['wins_amount'],
+        lossAmount: res.data.stats['loss_amount'],
+        drawsAmount: res.data.stats['draws_amount']
+      };
+      console.log(stats.value)
+    })
 }
 
 const startGame = () => {
@@ -140,4 +149,16 @@ const botMakesMove = (delay: number) => {
     canMakeMove.value = true;
   }, delay);
 }
+
+
+onMounted(() => {
+  axios.get('/api/get-stats', {})
+    .then(res => {
+      stats.value = {
+        winsAmount: res.data.stats['wins_amount'],
+        lossAmount: res.data.stats['loss_amount'],
+        drawsAmount: res.data.stats['draws_amount']
+      };
+    })
+})
 </script>
